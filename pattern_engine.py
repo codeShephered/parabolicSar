@@ -99,17 +99,33 @@ def _morning_doji_star(c1: Candle, c2: Candle, c3: Candle) -> bool:
     )
 
 
-def _evening_doji_star(c1: Candle, c2: Candle, c3: Candle) -> bool:
-    #c2_body_top = max(c2.open_price, c2.close)
+# def _evening_doji_star(c1: Candle, c2: Candle, c3: Candle) -> bool:
+#     #c2_body_top = max(c2.open_price, c2.close)
+#     c2_body_bot = min(c2.open_price, c2.close)
+#     return (
+#         c1.is_bullish()
+#         and _body(c1) > _range(c1) * 0.5
+#         and _is_doji(c2)
+#         and c2_body_bot > c1.close          # doji body gaps above c1 close
+#         and c3.is_bearish()
+#         and c3.open_price < c2_body_bot     # c3 gaps down below doji body
+#         and c3.close < (c1.open_price + c1.close) / 2  # closes below c1 midpoint
+#     )
+
+
+#Updated on 18-05-2026 for capturing weak evening Doji star signal
+def _evening_doji_star(c1, c2, c3):
+    c2_body_top = max(c2.open_price, c2.close)
     c2_body_bot = min(c2.open_price, c2.close)
+    c1_midpoint = (c1.open_price + c1.close) / 2
     return (
         c1.is_bullish()
         and _body(c1) > _range(c1) * 0.5
         and _is_doji(c2)
-        and c2_body_bot > c1.close          # doji body gaps above c1 close
+        and c2_body_bot > c1.close           # ← body gaps, not wick
         and c3.is_bearish()
-        and c3.open_price < c2_body_bot     # c3 gaps down below doji body
-        and c3.close < (c1.open_price + c1.close) / 2  # closes below c1 midpoint
+        and c3.open_price < c2_body_top      # ← C3 gaps down below C2 body
+        and c3.close < c1_midpoint           # ← closes below C1 midpoint
     )
 
 
@@ -186,6 +202,8 @@ def _morning_star(c1: Candle, c2: Candle, c3: Candle) -> bool:
         and c3.close > (c1.open_price + c1.close) / 2  # recovers past c1 midpoint
     )
 
+
+
 # def _evening_star(c1: Candle, c2: Candle, c3: Candle) -> bool:
 #     return (
 #         c1.is_bullish()
@@ -207,6 +225,8 @@ def _evening_star(c1: Candle, c2: Candle, c3: Candle) -> bool:
         and c3.open_price < c2_body_bot     # c3 gaps down from c2
         and c3.close < (c1.open_price + c1.close) / 2  # falls past c1 midpoint
     )
+
+
 
 def _three_stars_south(c1: Candle, c2: Candle, c3: Candle) -> bool:
     """Three Stars in the South — bullish exhaustion at support."""

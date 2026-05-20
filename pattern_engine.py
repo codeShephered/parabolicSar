@@ -281,29 +281,86 @@ def _dark_cloud_cover(c1: Candle, c2: Candle) -> bool:
 
 # ── 1-candle patterns ─────────────────────────────────────────────────────────
 
+# def _hammer(c: Candle) -> bool:
+#     r = _range(c)
+#     return r > 0 and _lower_wick(c) > 2 * _body(c) and _upper_wick(c) <= _body(c) * 0.3 and _body(c) > 0
+
+# def _shooting_star(c: Candle) -> bool:
+#     r = _range(c)
+#     return r > 0 and _upper_wick(c) > 2 * _body(c) and _lower_wick(c) <= _body(c) * 0.3 and _body(c) > 0
+
+#updated on 19-05-2026
 def _hammer(c: Candle) -> bool:
     r = _range(c)
-    return r > 0 and _lower_wick(c) > 2 * _body(c) and _upper_wick(c) <= _body(c) * 0.3 and _body(c) > 0
+    if r == 0:
+        return False
+
+    body_bottom = min(c.open, c.close)   # lowest point of body
+    body_position = (body_bottom - c.low) / r
+    # body_position = 0.0 means body sits at very bottom
+    # body_position = 1.0 means body sits at very top
+    # Hammer needs body in TOP 70% → body_position >= 0.70
+
+    return (
+        r > 0
+        and _lower_wick(c) > 2 * _body(c)
+        and _upper_wick(c) <= _body(c) * 0.1
+        and _body(c) > 0
+        and body_position >= 0.80   # body in top 30% of range ✅
+    )
+
 
 def _shooting_star(c: Candle) -> bool:
     r = _range(c)
-    return r > 0 and _upper_wick(c) > 2 * _body(c) and _lower_wick(c) <= _body(c) * 0.3 and _body(c) > 0
+    if r == 0:
+        return False
 
+    body_top = max(c.open, c.close)      # highest point of body
+    body_position = (c.high - body_top) / r
+    # body_position = 0.0 means body sits at very top
+    # body_position = 1.0 means body sits at very bottom
+    # Shooting star needs body in BOTTOM 70% → body_position >= 0.70
+
+    return (
+        r > 0
+        and _upper_wick(c) > 2 * _body(c)
+        and _lower_wick(c) <= _body(c) * 0.1
+        and _body(c) > 0
+        and body_position >= 0.80   # body in bottom 30% of range ✅
+    )
+
+# def _bullish_marubozu(c: Candle) -> bool:
+#     r = _range(c)
+#     if r == 0: return False
+#     return (c.is_bullish()
+#             and _body(c) / r >= 0.92
+#             and _upper_wick(c) / r <= 0.05
+#             and _lower_wick(c) / r <= 0.05)
+
+# def _bearish_marubozu(c: Candle) -> bool:
+#     r = _range(c)
+#     if r == 0: return False
+#     return (c.is_bearish()
+#             and _body(c) / r >= 0.92
+#             and _upper_wick(c) / r <= 0.05
+#             and _lower_wick(c) / r <= 0.05)
+
+# Updated on 19-05-2026 based on correction by system performance
 def _bullish_marubozu(c: Candle) -> bool:
     r = _range(c)
     if r == 0: return False
     return (c.is_bullish()
-            and _body(c) / r >= 0.92
-            and _upper_wick(c) / r <= 0.05
-            and _lower_wick(c) / r <= 0.05)
+            and _body(c) / r >= 0.95
+            and _upper_wick(c) / r <= 0.009
+            and _lower_wick(c) / r <= 0.009)
 
 def _bearish_marubozu(c: Candle) -> bool:
     r = _range(c)
     if r == 0: return False
     return (c.is_bearish()
-            and _body(c) / r >= 0.92
-            and _upper_wick(c) / r <= 0.05
-            and _lower_wick(c) / r <= 0.05)
+            and _body(c) / r >= 0.95
+            and _upper_wick(c) / r <= 0.009
+            and _lower_wick(c) / r <= 0.009)
 
 # ── Pattern Engine ────────────────────────────────────────────────────────────
 

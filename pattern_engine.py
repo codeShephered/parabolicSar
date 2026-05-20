@@ -295,7 +295,7 @@ def _hammer(c: Candle) -> bool:
     if r == 0:
         return False
 
-    body_bottom = min(c.open, c.close)   # lowest point of body
+    body_bottom = min(c.open_price, c.close)   # lowest point of body
     body_position = (body_bottom - c.low) / r
     # body_position = 0.0 means body sits at very bottom
     # body_position = 1.0 means body sits at very top
@@ -315,7 +315,7 @@ def _shooting_star(c: Candle) -> bool:
     if r == 0:
         return False
 
-    body_top = max(c.open, c.close)      # highest point of body
+    body_top = max(c.open_price, c.close)      # highest point of body
     body_position = (c.high - body_top) / r
     # body_position = 0.0 means body sits at very top
     # body_position = 1.0 means body sits at very bottom

@@ -40,6 +40,7 @@ INSTRUMENTS = {
         #"pe_strike_mode":  "itm",
         "ce_strike_mode":  "otm",
         "pe_strike_mode":  "otm",
+        "profit_threshold": 50.0,     # ← NEW: minimum profit to exit on reversal
     },
     "BANKNIFTY": {
         "zerodha_symbol":  "NSE:NIFTY BANK",
@@ -51,6 +52,7 @@ INSTRUMENTS = {
         #"pe_strike_mode":  "atm",
         "ce_strike_mode":  "otm",
         "pe_strike_mode":  "otm",
+        "profit_threshold": 90.0,     # ← NEW: minimum profit to exit on reversal
     },
 }
 

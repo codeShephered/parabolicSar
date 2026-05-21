@@ -65,24 +65,52 @@ def _is_doji(c: Candle, threshold: float = 0.1) -> bool:
 
 # ── 3-candle patterns ─────────────────────────────────────────────────────────
 
+# def _morning_doji_star(c1: Candle, c2: Candle, c3: Candle) -> bool:
+#     return (
+#         c1.is_bearish()
+#         and _body(c1) > _range(c1) * 0.5
+#         and _is_doji(c2)
+#         and c2.high < c1.close
+#         and c3.is_bullish()
+#         and c3.close > (c1.open_price + c1.close) / 2
+#     )
+
+# def _evening_doji_star(c1: Candle, c2: Candle, c3: Candle) -> bool:
+#     return (
+#         c1.is_bullish()
+#         and _body(c1) > _range(c1) * 0.5
+#         and _is_doji(c2)
+#         and c2.low > c1.close
+#         and c3.is_bearish()
+#         and c3.close < (c1.open_price + c1.close) / 2
+#     )
+
+#Changes made on 21-May-2026 for candle accuracy
 def _morning_doji_star(c1: Candle, c2: Candle, c3: Candle) -> bool:
+    c2_body_top = max(c2.open_price, c2.close)
+    #c2_body_bot = min(c2.open_price, c2.close)
     return (
         c1.is_bearish()
         and _body(c1) > _range(c1) * 0.5
         and _is_doji(c2)
-        and c2.high < c1.close
+        and c2_body_top < c1.close          # doji body gaps below c1 close
         and c3.is_bullish()
-        and c3.close > (c1.open_price + c1.close) / 2
+        and c3.open_price > c2_body_top     # c3 gaps up above doji body
+        and c3.close > (c1.open_price + c1.close) / 2  # closes above c1 midpoint
     )
 
-def _evening_doji_star(c1: Candle, c2: Candle, c3: Candle) -> bool:
+def _evening_doji_star(c1, c2, c3):
+    c2_body_top = max(c2.open_price, c2.close)
+    c2_body_bot = min(c2.open_price, c2.close)
+    c1_midpoint = (c1.open_price + c1.close) / 2
     return (
         c1.is_bullish()
         and _body(c1) > _range(c1) * 0.5
         and _is_doji(c2)
-        and c2.low > c1.close
+        and c2_body_bot > c1.close           # ← body gaps, not wick
         and c3.is_bearish()
-        and c3.close < (c1.open_price + c1.close) / 2
+        and c3.open_price < c2_body_top      # ← C3 gaps down below C2 body
+        and c3.close < c1_midpoint           # ← closes below C1 midpoint
     )
 
 def _three_white_soldiers(c1: Candle, c2: Candle, c3: Candle) -> bool:
@@ -167,13 +195,46 @@ def _dark_cloud_cover(c1: Candle, c2: Candle) -> bool:
 
 # ── 1-candle patterns ─────────────────────────────────────────────────────────
 
+# # Changes made on 21-May-2026 for candle accuracy
+
 def _hammer(c: Candle) -> bool:
     r = _range(c)
-    return r > 0 and _lower_wick(c) >= 2 * _body(c) and _upper_wick(c) <= _body(c) * 0.3 and _body(c) > 0
+    if r == 0:
+        return False
+
+    body_bottom = min(c.open_price, c.close)   # lowest point of body
+    body_position = (body_bottom - c.low) / r
+    # body_position = 0.0 means body sits at very bottom
+    # body_position = 1.0 means body sits at very top
+    # Hammer needs body in TOP 70% → body_position >= 0.70
+
+    return (
+        r > 0
+        and _lower_wick(c) > 2 * _body(c)
+        and _upper_wick(c) <= _body(c) * 0.1
+        and _body(c) > 0
+        and body_position >= 0.80   # body in top 30% of range ✅
+    )
+
 
 def _shooting_star(c: Candle) -> bool:
     r = _range(c)
-    return r > 0 and _upper_wick(c) >= 2 * _body(c) and _lower_wick(c) <= _body(c) * 0.3 and _body(c) > 0
+    if r == 0:
+        return False
+
+    body_top = max(c.open_price, c.close)      # highest point of body
+    body_position = (c.high - body_top) / r
+    # body_position = 0.0 means body sits at very top
+    # body_position = 1.0 means body sits at very bottom
+    # Shooting star needs body in BOTTOM 70% → body_position >= 0.70
+
+    return (
+        r > 0
+        and _upper_wick(c) > 2 * _body(c)
+        and _lower_wick(c) <= _body(c) * 0.1
+        and _body(c) > 0
+        and body_position >= 0.80   # body in bottom 30% of range ✅
+    )
 
 
 # ── Pattern Engine ────────────────────────────────────────────────────────────

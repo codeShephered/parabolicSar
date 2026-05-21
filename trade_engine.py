@@ -329,10 +329,21 @@ class TradeEngine:
             pos.update_premium(ltp)
             pos.trail_sar(sar_value)      # trail the SAR stop
 
+            ##Changes on 21 May 2026 to honour reversal only when the ltp is > (50-for NIFTY; 90-for BANKNIFTY)entry preium
+            # ── Compute current P&L ───────────────────────────────────────────────
+            pnl        = ltp - pos.entry_premium
+            pnl_pct    = pnl / pos.entry_premium * 100
+            #premium_sl = pos.entry_premium * 0.75
+
+            # ── Get profit threshold for this instrument ──────────────────────────
+            profit_threshold = config.INSTRUMENTS[instrument].get("profit_threshold", 0)
+
+            ############################
+
             # SAR reversal → exit
             if sar_reversed:
                 return self._close(pos, instrument,
-                                   f"SAR reversed  new_sar={sar_value:.2f}")
+                                   f"Tier 1 exit: SAR reversed  new_sar={sar_value:.2f}")
 
             # Code change on 21-05-2026 to avoid 83% patterns to exit without SAR confirmation
             # Tier 1 (≥83%) → immediate exit
@@ -341,12 +352,26 @@ class TradeEngine:
             #                        f"Reversal: {rev_pattern} (≥83% — immediate)")
             
             # Tier 2 (80-82%) → set pending, exit on next SAR confirm
+            # if rev_pattern and not pos.pending_reversal:
+            #     pos.pending_reversal = rev_pattern
+            #     logger.info(
+            #         f"{instrument}: pending reversal '{rev_pattern}' — "
+            #         f"waiting for SAR confirmation"
+            #     )
+            #Changes made on 21-May-2026 to exit on Target while trend reversal is seen
             if rev_pattern and not pos.pending_reversal:
-                pos.pending_reversal = rev_pattern
+                if pnl < profit_threshold:
+                    logger.info(
+                        f"{instrument}: pending reversal '{pos.pending_reversal}' + Target flip "
+                        f"but profit {pnl:+.2f} < threshold {profit_threshold:.2f} — holding position"
+                    )
+                    return None
+                
                 logger.info(
-                    f"{instrument}: pending reversal '{rev_pattern}' — "
-                    f"waiting for SAR confirmation"
+                    f"{instrument} Tier 2 exit: pending reversal '{pos.pending_reversal}' Target flip"
+                    f"(profit threshold met). P&L={pnl:+.2f} ({pnl_pct:+.1f}%)"
                 )
+                return self._close(instrument, ltp, f"Reversal: {pos.pending_reversal} Target")
 
         return None
 

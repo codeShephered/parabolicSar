@@ -334,11 +334,12 @@ class TradeEngine:
                 return self._close(pos, instrument,
                                    f"SAR reversed  new_sar={sar_value:.2f}")
 
+            # Code change on 21-05-2026 to avoid 83% patterns to exit without SAR confirmation
             # Tier 1 (≥83%) → immediate exit
-            if rev_pattern and rev_pattern in IMMEDIATE_EXIT_PATTERNS:
-                return self._close(pos, instrument,
-                                   f"Reversal: {rev_pattern} (≥83% — immediate)")
-
+            # if rev_pattern and rev_pattern in IMMEDIATE_EXIT_PATTERNS:
+            #     return self._close(pos, instrument,
+            #                        f"Reversal: {rev_pattern} (≥83% — immediate)")
+            
             # Tier 2 (80-82%) → set pending, exit on next SAR confirm
             if rev_pattern and not pos.pending_reversal:
                 pos.pending_reversal = rev_pattern

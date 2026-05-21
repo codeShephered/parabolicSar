@@ -85,7 +85,6 @@ def _is_doji(c: Candle, threshold: float = 0.1) -> bool:
 #         and c3.close < (c1.open_price + c1.close) / 2
 #     )
 
-#Changes made on 21-May-2026 for candle accuracy
 def _morning_doji_star(c1: Candle, c2: Candle, c3: Candle) -> bool:
     c2_body_top = max(c2.open_price, c2.close)
     #c2_body_bot = min(c2.open_price, c2.close)
@@ -99,6 +98,22 @@ def _morning_doji_star(c1: Candle, c2: Candle, c3: Candle) -> bool:
         and c3.close > (c1.open_price + c1.close) / 2  # closes above c1 midpoint
     )
 
+
+# def _evening_doji_star(c1: Candle, c2: Candle, c3: Candle) -> bool:
+#     #c2_body_top = max(c2.open_price, c2.close)
+#     c2_body_bot = min(c2.open_price, c2.close)
+#     return (
+#         c1.is_bullish()
+#         and _body(c1) > _range(c1) * 0.5
+#         and _is_doji(c2)
+#         and c2_body_bot > c1.close          # doji body gaps above c1 close
+#         and c3.is_bearish()
+#         and c3.open_price < c2_body_bot     # c3 gaps down below doji body
+#         and c3.close < (c1.open_price + c1.close) / 2  # closes below c1 midpoint
+#     )
+
+
+#Updated on 18-05-2026 for capturing weak evening Doji star signal
 def _evening_doji_star(c1, c2, c3):
     c2_body_top = max(c2.open_price, c2.close)
     c2_body_bot = min(c2.open_price, c2.close)
@@ -113,6 +128,7 @@ def _evening_doji_star(c1, c2, c3):
         and c3.close < c1_midpoint           # ← closes below C1 midpoint
     )
 
+
 def _three_white_soldiers(c1: Candle, c2: Candle, c3: Candle) -> bool:
     return (
         c1.is_bullish() and c2.is_bullish() and c3.is_bullish()
@@ -124,6 +140,33 @@ def _three_white_soldiers(c1: Candle, c2: Candle, c3: Candle) -> bool:
         and _body(c2) > _range(c2) * 0.5
         and _body(c3) > _range(c3) * 0.5
     )
+# def _three_white_soldiers(c1: Candle, c2: Candle, c3: Candle) -> bool:
+#     return (
+#         c1.is_bullish() and c2.is_bullish() and c3.is_bullish()
+#         and c2.open_price > c1.open_price   # opens within c1 body (above open)
+#         and c2.open_price < c1.close        # but below c1 close — retracement open
+#         and c3.open_price > c2.open_price
+#         and c3.open_price < c2.close        # same for c3 within c2 body
+#         and c2.close > c1.close             # each candle closes higher
+#         and c3.close > c2.close
+#         and _body(c1) > _range(c1) * 0.5
+#         and _body(c2) > _range(c2) * 0.5
+#         and _body(c3) > _range(c3) * 0.5
+#     )
+
+# def _three_black_crows(c1: Candle, c2: Candle, c3: Candle) -> bool:
+#     return (
+#         c1.is_bearish() and c2.is_bearish() and c3.is_bearish()
+#         and c2.open_price < c1.open_price   # opens within c1 body (below open)
+#         and c2.open_price > c1.close        # but above c1 close — retracement open
+#         and c3.open_price < c2.open_price
+#         and c3.open_price > c2.close        # same for c3 within c2 body
+#         and c2.close < c1.close             # each candle closes lower
+#         and c3.close < c2.close
+#         and _body(c1) > _range(c1) * 0.5
+#         and _body(c2) > _range(c2) * 0.5
+#         and _body(c3) > _range(c3) * 0.5
+#     )
 
 def _three_black_crows(c1: Candle, c2: Candle, c3: Candle) -> bool:
     return (
@@ -137,22 +180,64 @@ def _three_black_crows(c1: Candle, c2: Candle, c3: Candle) -> bool:
         and _body(c3) > _range(c3) * 0.5
     )
 
+# def _morning_star(c1: Candle, c2: Candle, c3: Candle) -> bool:
+#     return (
+#         c1.is_bearish()
+#         and _body(c1) > _range(c1) * 0.5
+#         and _body(c2) < _body(c1) * 0.3
+#         and c3.is_bullish()
+#         and c3.close > (c1.open_price + c1.close) / 2
+#     )
+
 def _morning_star(c1: Candle, c2: Candle, c3: Candle) -> bool:
+    c2_body_top = max(c2.open_price, c2.close)
+    #c2_body_bot = min(c2.open_price, c2.close)
     return (
         c1.is_bearish()
         and _body(c1) > _range(c1) * 0.5
-        and _body(c2) < _body(c1) * 0.3
+        and _body(c2) < _body(c1) * 0.3    # small body
+        and c2_body_top < c1.close          # c2 gaps down from c1
         and c3.is_bullish()
-        and c3.close > (c1.open_price + c1.close) / 2
+        and c3.open_price > c2_body_top     # c3 gaps up from c2
+        and c3.close > (c1.open_price + c1.close) / 2  # recovers past c1 midpoint
     )
 
+
+
+# def _evening_star(c1: Candle, c2: Candle, c3: Candle) -> bool:
+#     return (
+#         c1.is_bullish()
+#         and _body(c1) > _range(c1) * 0.5
+#         and _body(c2) < _body(c1) * 0.3
+#         and c3.is_bearish()
+#         and c3.close < (c1.open_price + c1.close) / 2
+#     )
+
 def _evening_star(c1: Candle, c2: Candle, c3: Candle) -> bool:
+    #c2_body_top = max(c2.open_price, c2.close)
+    c2_body_bot = min(c2.open_price, c2.close)
     return (
         c1.is_bullish()
         and _body(c1) > _range(c1) * 0.5
-        and _body(c2) < _body(c1) * 0.3
+        and _body(c2) < _body(c1) * 0.3    # small body
+        and c2_body_bot > c1.close          # c2 gaps up from c1
         and c3.is_bearish()
-        and c3.close < (c1.open_price + c1.close) / 2
+        and c3.open_price < c2_body_bot     # c3 gaps down from c2
+        and c3.close < (c1.open_price + c1.close) / 2  # falls past c1 midpoint
+    )
+
+
+
+def _three_stars_south(c1: Candle, c2: Candle, c3: Candle) -> bool:
+    """Three Stars in the South — bullish exhaustion at support."""
+    return (
+        c1.is_bearish() and c2.is_bearish() and c3.is_bearish()
+        and _body(c1) > _body(c2)              # bodies shrinking
+        and _body(c2) > _body(c3) * 0.5        # c3 is smallest
+        and _lower_wick(c1) > _body(c1) * 0.5  # c1 has visible lower wick (rejection)
+        and c2.low > c1.low                    # higher low — sellers exhausting
+        and abs(c3.low - c2.low) / c2.low < 0.003  # c3 closes very near c2.low
+        and c3.close > c2.close                # c3 closes above c2 close (early strength)
     )
 
 # ── 2-candle patterns ─────────────────────────────────────────────────────────
@@ -161,8 +246,8 @@ def _bullish_engulfing(c1: Candle, c2: Candle) -> bool:
     return (
         c1.is_bearish()
         and c2.is_bullish()
-        and c2.open_price <= c1.close
-        and c2.close >= c1.open_price
+        and c2.open_price < c1.close
+        and c2.close > c1.open_price
         and _body(c2) > _body(c1)
     )
 
@@ -170,8 +255,8 @@ def _bearish_engulfing(c1: Candle, c2: Candle) -> bool:
     return (
         c1.is_bullish()
         and c2.is_bearish()
-        and c2.open_price >= c1.close
-        and c2.close <= c1.open_price
+        and c2.open_price > c1.close
+        and c2.close < c1.open_price
         and _body(c2) > _body(c1)
     )
 
@@ -181,6 +266,7 @@ def _piercing_line(c1: Candle, c2: Candle) -> bool:
         c1.is_bearish()
         and c2.is_bullish()
         and c2.open_price < c1.low
+        and _body(c1) > _range(c1) * 0.5 
         and mid < c2.close < c1.open_price
     )
 
@@ -195,8 +281,15 @@ def _dark_cloud_cover(c1: Candle, c2: Candle) -> bool:
 
 # ── 1-candle patterns ─────────────────────────────────────────────────────────
 
-# # Changes made on 21-May-2026 for candle accuracy
+# def _hammer(c: Candle) -> bool:
+#     r = _range(c)
+#     return r > 0 and _lower_wick(c) > 2 * _body(c) and _upper_wick(c) <= _body(c) * 0.3 and _body(c) > 0
 
+# def _shooting_star(c: Candle) -> bool:
+#     r = _range(c)
+#     return r > 0 and _upper_wick(c) > 2 * _body(c) and _lower_wick(c) <= _body(c) * 0.3 and _body(c) > 0
+
+#updated on 19-05-2026
 def _hammer(c: Candle) -> bool:
     r = _range(c)
     if r == 0:
@@ -236,6 +329,38 @@ def _shooting_star(c: Candle) -> bool:
         and body_position >= 0.80   # body in bottom 30% of range ✅
     )
 
+# def _bullish_marubozu(c: Candle) -> bool:
+#     r = _range(c)
+#     if r == 0: return False
+#     return (c.is_bullish()
+#             and _body(c) / r >= 0.92
+#             and _upper_wick(c) / r <= 0.05
+#             and _lower_wick(c) / r <= 0.05)
+
+# def _bearish_marubozu(c: Candle) -> bool:
+#     r = _range(c)
+#     if r == 0: return False
+#     return (c.is_bearish()
+#             and _body(c) / r >= 0.92
+#             and _upper_wick(c) / r <= 0.05
+#             and _lower_wick(c) / r <= 0.05)
+
+# Updated on 19-05-2026 based on correction by system performance
+def _bullish_marubozu(c: Candle) -> bool:
+    r = _range(c)
+    if r == 0: return False
+    return (c.is_bullish()
+            and _body(c) / r >= 0.95
+            and _upper_wick(c) / r <= 0.009
+            and _lower_wick(c) / r <= 0.009)
+
+def _bearish_marubozu(c: Candle) -> bool:
+    r = _range(c)
+    if r == 0: return False
+    return (c.is_bearish()
+            and _body(c) / r >= 0.95
+            and _upper_wick(c) / r <= 0.009
+            and _lower_wick(c) / r <= 0.009)
 
 # ── Pattern Engine ────────────────────────────────────────────────────────────
 
@@ -278,6 +403,11 @@ class PatternEngine:
             if _evening_star(c1, c2, c3):
                 logger.info("▼ Evening Star (82%) — BEARISH")
                 return "Evening Star", "bearish"
+            
+            if _three_stars_south(c1, c2, c3):
+                logger.info("▲ Three Stars in the South (85%) — BULLISH")
+                return "hree Stars in the South ", "bullish"
+
 
         # ── 2-candle ──────────────────────────────────────────────────────────
         if n >= 2:
@@ -307,6 +437,13 @@ class PatternEngine:
         if _shooting_star(c):
             logger.info("▼ Shooting Star (80%) — BEARISH")
             return "Shooting Star", "bearish"
+        if _bullish_marubozu(c):
+            logger.info("▲ Bullish Marobozu (80%) — BULLISH")
+            return "Bullish Marobozu", "bullish"
+        if _bearish_marubozu(c):
+            logger.info("▼ Bearish Marubozu (80%) — BEARISH")
+            return "Bearish Marubozu", "bearish"
+
 
         return None, "none"
 

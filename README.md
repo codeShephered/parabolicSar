@@ -1,5 +1,7 @@
 # SAR Options Trading System
 
+
+
 Intraday NIFTY & BANKNIFTY options trading system combining **Parabolic SAR**
 (start=0.02, increment=0.02, max=0.2) with **12 candlestick patterns** for CE/PE entry
 and exit. Runs via a local web dashboard for both **Paper** and **Live** trading.
